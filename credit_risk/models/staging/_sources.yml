@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: credit_raw # the logical name we use in source()
+    database: credit-risk-explainable-ai # in BigQuery, "database" = the GCP project
+    schema: credit_raw # "schema" = the BigQuery dataset
+    tables:
+      - name: raw_applications
+      - name: raw_bureau

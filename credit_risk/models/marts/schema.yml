@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: mart_credit_features
+    description: "One row per applicant: cleaned application attributes joined with aggregated bureau history. The feature table the model trains on."
+    columns:
+      - name: applicant_id
+        description: "Unique applicant identifier — the grain of this table."
+        tests:
+          - unique
+          - not_null
+
+      - name: target_default
+        description: "1 = payment difficulties (default), 0 = repaid."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments: # dbt 1.11: nest test args under 'arguments'
+                values: [0, 1]
+                quote: false # compare as integers, not strings
