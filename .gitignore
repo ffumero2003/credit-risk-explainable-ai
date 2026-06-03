@@ -1,4 +1,22 @@
+# Python
 venv/
-.env
 __pycache__/
+*.pyc
+
+# Secrets — NEVER commit this
+.env
+
+# Data files (large + dataset licensing)
 *.csv
+
+# dbt build artifacts
+credit_risk/target/
+credit_risk/logs/
+credit_risk/dbt_packages/
+
+# Node / frontend
+frontend/node_modules/
+frontend/dist/
+
+# macOS
+.DS_Store
