@@ -4,14 +4,19 @@ Day 1: Ingestion
 Loads the raw Home Credit CSVs from local disk into a 'raw' dataset in BigQuery.
 No transformation here — that's Day 2 (dbt). Re-running is safe (idempotent).
 """
-
+import os
 from google.cloud import bigquery  # official BigQuery client library
 
 # ----------------- CONFIG (the only part you edit) -----------------
 PROJECT_ID = "credit-risk-explainable-ai"               # your sandbox project ID
 RAW_DATASET = "credit_raw"                              # dataset holding the raw tables
 LOCATION = "US"                                         # keep this identical everywhere
-DATA_DIR = "/Users/felipefumero/datasets/home-credit"  # folder where the CSVs live
+# Where the CSVs live. Reads DATA_DIR from the environment if it's set, otherwise
+# falls back to your Mac path. On your Mac DATA_DIR is unset, so it uses the local
+# folder; inside the Airflow container DATA_DIR is set to /opt/data (via the env var
+# we added to docker-compose), so the SAME script works in both places untouched.
+DATA_DIR = os.getenv("DATA_DIR", "/Users/felipefumero/datasets/home-credit")
+
 
 # Map each CSV file -> the raw table name it becomes.
 FILES_TO_LOAD = {

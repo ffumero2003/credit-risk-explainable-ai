@@ -23,7 +23,10 @@ DECISION_THRESHOLD = 0.5   # decline if predicted risk >= this (a tunable busine
 
 # ----------------- LOAD -----------------
 client = bigquery.Client(project=PROJECT_ID)
-query = f"SELECT * FROM `{PROJECT_ID}.{FEATURE_TABLE}`"
+# AFTER — ORDER BY locks the row order, so the same applicants land in the
+# test set (and get scored) on every run. Without it, BigQuery's order is
+# non-deterministic and your scored IDs change each run.
+query = f"SELECT * FROM `{PROJECT_ID}.{FEATURE_TABLE}` ORDER BY applicant_id"
 df = client.query(query).to_dataframe()
 print(f"Loaded {df.shape[0]:,} rows, {df.shape[1]} columns")
 

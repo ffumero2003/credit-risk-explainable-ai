@@ -1,0 +1,46 @@
+[0m09:56:58.124143 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1038666e0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x104a151b0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x104a14dc0>]}
+
+
+============================== 09:56:58.127346 | 30bb01c9-90c3-48a8-ad7f-ee45e0e41d0c ==============================
+[0m09:56:58.127346 [info ] [MainThread]: Running with dbt=1.11.11
+[0m09:56:58.127706 [debug] [MainThread]: running dbt with arguments {'empty': 'None', 'profiles_dir': '/Users/felipefumero/.dbt', 'log_cache_events': 'False', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'quiet': 'False', 'write_json': 'True', 'indirect_selection': 'eager', 'partial_parse': 'True', 'fail_fast': 'False', 'target_path': 'None', 'no_print': 'None', 'cache_selected_only': 'False', 'invocation_command': 'dbt init credit-risk', 'log_format': 'default', 'send_anonymous_usage_stats': 'True', 'introspect': 'True', 'warn_error': 'None', 'static_parser': 'True', 'log_path': 'logs', 'version_check': 'True', 'use_colors': 'True', 'debug': 'False', 'use_experimental_parser': 'False', 'printer_width': '80'}
+[0m09:57:23.481693 [debug] [MainThread]: Starter project path: /Users/felipefumero/projects/credit-risk-explainable-ai/venv/lib/python3.10/site-packages/dbt/include/starter_project
+[0m09:57:23.492914 [info ] [MainThread]: 
+Your new dbt project "credit_risk" was created!
+
+For more information on how to configure the profiles.yml file,
+please consult the dbt documentation here:
+
+  https://docs.getdbt.com/docs/configure-your-profile
+
+One more thing:
+
+Need help? Don't hesitate to reach out to us via GitHub issues or on Slack:
+
+  https://community.getdbt.com/
+
+Happy modeling!
+
+[0m09:57:23.493294 [info ] [MainThread]: Setting up your profile.
+[0m09:58:25.805614 [info ] [MainThread]: Profile credit_risk written to /Users/felipefumero/.dbt/profiles.yml using target's profile_template.yml and your supplied values. Run 'dbt debug' to validate the connection.
+[0m09:58:25.887018 [debug] [MainThread]: Resource report: {"command_name": "init", "command_success": true, "command_wall_clock_time": 87.82541, "process_in_blocks": "0", "process_kernel_time": 0.323552, "process_mem_max_rss": "192675840", "process_out_blocks": "0", "process_user_time": 1.179896}
+[0m09:58:25.889104 [debug] [MainThread]: Command `dbt init` succeeded at 09:58:25.888959 after 87.83 seconds
+[0m09:58:25.889873 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1038666e0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x104961960>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x104a14160>]}
+[0m09:58:25.890401 [debug] [MainThread]: Flushing usage events
+[0m09:58:27.379251 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m16:43:37.131975 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x10821e6e0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x1094351e0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x109434df0>]}
+
+
+============================== 16:43:37.135369 | 08aa4b30-161c-4a4d-befc-07078c55a658 ==============================
+[0m16:43:37.135369 [info ] [MainThread]: Running with dbt=1.11.11
+[0m16:43:37.135730 [debug] [MainThread]: running dbt with arguments {'no_print': 'None', 'version_check': 'True', 'send_anonymous_usage_stats': 'True', 'use_experimental_parser': 'False', 'static_parser': 'True', 'warn_error': 'None', 'partial_parse': 'True', 'invocation_command': 'dbt build', 'write_json': 'True', 'log_format': 'default', 'introspect': 'True', 'indirect_selection': 'eager', 'printer_width': '80', 'use_colors': 'True', 'fail_fast': 'False', 'cache_selected_only': 'False', 'debug': 'False', 'profiles_dir': '/Users/felipefumero/.dbt', 'log_cache_events': 'False', 'log_path': 'logs', 'target_path': 'None', 'quiet': 'False', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'empty': 'False'}
+[0m16:43:37.136143 [error] [MainThread]: Encountered an error:
+Runtime Error
+  No dbt_project.yml found at expected path /Users/felipefumero/projects/credit-risk-explainable-ai/dbt_project.yml
+  Verify that each entry within packages.yml (and their transitive dependencies) contains a file named dbt_project.yml
+  
+[0m16:43:37.165760 [debug] [MainThread]: Resource report: {"command_name": "build", "command_success": false, "command_wall_clock_time": 0.09167046, "process_in_blocks": "0", "process_kernel_time": 0.154654, "process_mem_max_rss": "105693184", "process_out_blocks": "0", "process_user_time": 0.776975}
+[0m16:43:37.166276 [debug] [MainThread]: Command `dbt build` failed at 16:43:37.166197 after 0.09 seconds
+[0m16:43:37.166578 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x10821e6e0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x109434190>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x109435240>]}
+[0m16:43:37.166843 [debug] [MainThread]: Flushing usage events
+[0m16:43:37.950259 [debug] [MainThread]: An error was encountered while trying to flush usage events

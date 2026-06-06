@@ -19,12 +19,19 @@ It demonstrates a complete, credit-focused data + ML stack — ingestion, wareho
 ```mermaid
 flowchart TD
     KAGGLE["Home Credit dataset<br/>(application + bureau CSVs)"]
-    INGEST["Python + pandas<br/>load_raw.py"]
-    RAW[("BigQuery<br/>credit_raw")]
-    DBT["dbt<br/>staging → intermediate → marts"]
-    ANALYTICS[("BigQuery<br/>credit_analytics<br/>mart_credit_features")]
-    MODEL["Python<br/>train_model.py<br/>XGBoost + SHAP"]
-    SCORED[("BigQuery<br/>scored_applications")]
+
+    subgraph AIRFLOW["Apache Airflow (Docker): orchestrated batch pipeline"]
+        direction LR
+        INGEST["load_raw<br/>Python + pandas"]
+        RAW[("BigQuery<br/>credit_raw")]
+        DBT["dbt_build<br/>staging → marts + tests"]
+        ANALYTICS[("BigQuery<br/>credit_analytics<br/>mart_credit_features")]
+        MODEL["train_model<br/>XGBoost + SHAP"]
+        SCORED[("BigQuery<br/>scored_applications")]
+        QC["quality_check<br/>row-count gate"]
+        INGEST --> RAW --> DBT --> ANALYTICS --> MODEL --> SCORED --> QC
+    end
+
     LOOKER["Looker Studio<br/>dashboard"]
     FLASK["Flask API<br/>app.py"]
     EXPLAIN["explainer.py<br/>FCRA adverse-action"]
@@ -32,7 +39,7 @@ flowchart TD
     REACT["React frontend"]
     USER(["User"])
 
-    KAGGLE --> INGEST --> RAW --> DBT --> ANALYTICS --> MODEL --> SCORED
+    KAGGLE --> INGEST
     SCORED --> LOOKER
     USER --> REACT --> FLASK --> SCORED
     FLASK --> EXPLAIN --> CLAUDE
@@ -61,17 +68,18 @@ The dataset is **imbalanced** (~8% default rate), which is why evaluation uses r
 
 ## Tech Stack
 
-| Layer                | Tool                   |
-| -------------------- | ---------------------- |
-| Ingestion            | Python, pandas         |
-| Data warehouse       | Google BigQuery        |
-| Transformation       | dbt                    |
-| Modeling             | scikit-learn, XGBoost  |
-| Explainability       | SHAP                   |
-| AI explanation layer | Claude API (Anthropic) |
-| Backend              | Flask                  |
-| Frontend             | React + Vite           |
-| Dashboard            | Looker Studio          |
+| Layer                | Tool                                 |
+| -------------------- | ------------------------------------ |
+| Ingestion            | Python, pandas                       |
+| Data warehouse       | Google BigQuery                      |
+| Transformation       | dbt                                  |
+| Modeling             | scikit-learn, XGBoost                |
+| Explainability       | SHAP                                 |
+| AI explanation layer | Claude API (Anthropic)               |
+| Backend              | Flask                                |
+| Frontend             | React + Vite                         |
+| Dashboard            | Looker Studio                        |
+| Orchestration        | Apache Airflow (Docker + PostgreSQL) |
 
 ---
 
@@ -106,34 +114,40 @@ Honest, untuned baseline results on a held-out test set (61,503 applicants, gend
 
 | Model                          | AUC       | Gini      | KS        |
 | ------------------------------ | --------- | --------- | --------- |
-| Logistic Regression (baseline) | 0.733     | 0.466     | 0.347     |
-| **XGBoost (selected)**         | **0.747** | **0.494** | **0.371** |
+| Logistic Regression (baseline) | 0.737     | 0.474     | 0.356     |
+| **XGBoost (selected)**         | **0.750** | **0.500** | **0.368** |
 
 XGBoost wins and is used for scoring. These are **solid, honest baseline numbers — not leaderboard-tuned** (competition-winning solutions push AUC ~0.80 with heavy feature engineering and stacking). The top global drivers are the external credit scores (`ext_source_2`, `ext_source_3`, `ext_source_1`), consistent with how real credit models behave.
 
----
-
 ## Screenshots
+
+**Architecture**
+
+![Credit Risk Architecture](assets/credit_risk_architecture.png)
 
 **Credit Decision Explainer (the AI layer):**
 
-![App](assets/app-demo.png)
+![App](assets/app_demo.png)
 
 **Looker Studio dashboard:**
 
-![Dashboard](assets/dashboard.png)
+![Dashboard](assets/looker_studio.png)
 
 **Model training & SHAP output:**
 
-![Model](assets/model-output.png)
+![Model](assets/model_output.png)
 
 **Data in BigQuery:**
 
-![BigQuery](assets/bigquery-tables.png)
+![BigQuery](assets/big_query_data.png)
 
 **dbt run:**
 
-![dbt run](assets/dbt-run.png)
+![dbt run](assets/dbt_run.png)
+
+**Airflow UI**
+
+![airflow ui](assets/airflow_green_dag_run.png)
 
 ---
 
@@ -147,6 +161,21 @@ XGBoost wins and is used for scoring. These are **solid, honest baseline numbers
 6. The decision, probability, and explanation are returned to the React UI.
 
 ---
+
+## Orchestration
+
+The batch pipeline is orchestrated with **Apache Airflow 3.2**, running locally in **Docker**. A single DAG, `credit_risk_pipeline`, runs the four stages in order and stops if any stage fails:
+
+`load_raw → dbt_build → train_model → quality_check`
+
+- **load_raw** — ingests the raw CSVs into BigQuery
+- **dbt_build** — runs the dbt models and data tests
+- **train_model** — trains, runs SHAP, writes `scored_applications`
+- **quality_check** — a data-quality gate that fails the run if `scored_applications` is empty
+
+The first three are `BashOperator` tasks wrapping the same scripts you can run by hand; the last is a `PythonOperator` that queries BigQuery and raises on invalid output. Airflow runs from the official Docker Compose stack (Postgres metadata DB, Redis, Celery worker) on a small custom image that adds the project's Python dependencies. A full run completes in ~3 minutes locally.
+
+> **Scope:** orchestration covers the batch scoring pipeline only. The Claude explanation layer is an on-demand API and is intentionally not part of the scheduled DAG. It runs locally and is triggered manually (`schedule=None`) — a portfolio setup, not a deployed scheduler.
 
 ## Running Locally
 
@@ -216,18 +245,14 @@ This is a **portfolio project**, not a production credit system. Specifically:
 - **Fixed decision threshold (0.5).** This produces a ~31.5% decline rate — illustrative, not calibrated to any real risk appetite or approval-rate target.
 - **Untuned model.** AUC ~0.747 is an honest baseline, not a competition-optimized score.
 - **Partial fair-lending coverage.** `gender` is excluded, but `family_status` (marital status, also ECOA-protected) and `age_years` (nuanced under Reg B) currently remain in the model — a known limitation, listed below to address.
-- **No orchestration or live deployment yet** — the pipeline is run manually in order.
+- **No live deployment yet.** The batch pipeline is orchestrated locally with Airflow (Docker), triggered manually rather than scheduled on managed infrastructure. The app runs locally.
 - **Explanations are illustrative** of an adverse-action workflow; they are not legal compliance advice.
 
 ---
 
 ## Future Improvements
 
-- **Apache Airflow** DAG (Docker + PostgreSQL) to orchestrate ingest → dbt → score → quality checks
-- Remove `family_status` and revisit the treatment of `age` for fuller ECOA alignment
-- Decision-threshold calibration / cost-based decisioning instead of a fixed 0.5
-- Probability calibration and model monitoring over time
-- Live deployment (Vercel frontend + a hosted backend on Cloud Run)
+- Schedule the Airflow DAG and run it on managed infrastructure (e.g. Cloud Composer) with retries, alerting, and SLAs
 
 ---
 
