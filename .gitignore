@@ -20,3 +20,9 @@ frontend/dist/
 
 # macOS
 .DS_Storelogs/
+
+
+airflow/logs/
+airflow/config/
+airflow/plugins/
+airflow/.env
